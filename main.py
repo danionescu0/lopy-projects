@@ -1,6 +1,6 @@
 import pycom
+import ujson
 from machine import UART
-
 
 from TextSensorDataParser import TextSensorDataParser
 from Wlan import Wlan
@@ -9,12 +9,13 @@ import config
 
 pycom.heartbeat(False)
 uart = UART(1, baudrate=9600)
-parser = TextSensorDataParser()
+parser = TextSensorDataParser(config.sensor_mapping)
 api_data_sender = ApiDataSender(config.endpoint)
+print("Connecting to Wifi")
 wlan = Wlan(config.wifi['user'], config.wifi['password'])
 wlan.connect()
 
-print("Program started, listening on serial 1")
+print('Program started, listening on serial 1')
 buffer = ''
 while True:
     incomming = uart.read(5)
@@ -23,6 +24,10 @@ while True:
     buffer += incomming.decode('utf-8')
     if parser.is_buffer_parsable(buffer):
         sensors = parser.parse(buffer)
-        print(sensors)
-        api_data_sender.send(sensors)
+        print('Decoded sensors: {0}'.format(ujson.dumps(sensors)))
+        try:
+            api_data_sender.send(sensors)
+        except:
+            print ('Http request failed, retrying..')
+            continue
         buffer = ''
