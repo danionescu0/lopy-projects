@@ -19,9 +19,9 @@ class TextSensorDataParser:
             sensor_components = self.regex.search(sensor_data)
             if not sensor_components:
                 continue
-            type = self.__sensor_mapping[sensor_components.group(1)]
-            sensors.append({'type' : type,
-                            'id' : sensor_components.group(2),
+            mapping = self.__sensor_mapping[sensor_components.group(1)]
+            sensors.append({'type' : mapping[0],
+                            'id' : mapping[1],
                             'value' : sensor_components.group(3)})
 
         return sensors

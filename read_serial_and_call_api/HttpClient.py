@@ -56,14 +56,12 @@ def request(method, url, json=None, timeout=None, headers=None):
     proto = urlparts[0]
     host = urlparts[2]
     urlpath = '' if len(urlparts) < 4 else urlparts[3]
-
     if proto == 'http:':
         port = 80
     elif proto == 'https:':
         port = 443
     else:
         raise OSError('Unsupported protocol: %s' % proto[:-1])
-
     if ':' in host:
         host, port = host.split(':')
         port = int(port)
@@ -73,28 +71,22 @@ def request(method, url, json=None, timeout=None, headers=None):
         content_type = CONTENT_TYPE_JSON
     else:
         content = None
-
     ai = usocket.getaddrinfo(host, port)
     addr = ai[0][4]
-
     sock = usocket.socket()
 
     if timeout is not None:
         assert SUPPORT_TIMEOUT, 'Socket does not support timeout'
         sock.settimeout(timeout)
-
     sock.connect(addr)
-
     if proto == 'https:':
         assert SUPPORT_SSL, 'HTTPS not supported: could not find ussl'
         sock = ussl.wrap_socket(sock)
 
     sock.write('%s /%s HTTP/1.0\r\nHost: %s\r\n' % (method, urlpath, host))
-
     if headers is not None:
         for header in headers.items():
             sock.write('%s: %s\r\n' % header)
-
     if content is not None:
         sock.write('content-length: %s\r\n' % len(content))
         sock.write('content-type: %s\r\n' % content_type)
@@ -102,13 +94,12 @@ def request(method, url, json=None, timeout=None, headers=None):
         sock.write(content)
     else:
         sock.write('\r\n')
-
     l = sock.readline()
     protover, status, msg = l.split(None, 2)
-
     # Skip headers
     while sock.readline() != b'\r\n':
         pass
+    sock.close()
 
     return Response(int(status), sock)
 

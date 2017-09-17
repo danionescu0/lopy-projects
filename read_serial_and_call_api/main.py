@@ -27,7 +27,6 @@ while True:
         print('Decoded sensors: {0}'.format(ujson.dumps(sensors)))
         try:
             api_data_sender.send(sensors)
-        except:
-            print ('Http request failed, retrying..')
-            continue
+        except Exception as e:
+            print ('Http request failed, retrying..' + str(e))
         buffer = ''
